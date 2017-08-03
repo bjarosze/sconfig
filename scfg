@@ -1,0 +1,88 @@
+#!/bin/bash
+
+working_dir="$HOME/.scfg"
+map_file="$working_dir/.map"
+me=`basename "$0"`
+
+
+# helpers
+
+function cd_working_dir {
+  trap 'popd > /dev/null' EXIT
+  cd $working_dir
+  pushd .
+}
+
+function map_config {
+  config_file=$1
+  config_name=`basename $config_file`
+  config_file_path=`realpath $config_file`
+  
+  echo "$config_file=$config_file_path" >> $map_file
+}
+
+function is_config_not_added {
+  config_file=$1
+  config_name=`basename $config_file`
+  [ `cat $map_file | awk -F\= '{print $1}' | grep $config_name | wc -l` -eq "0" ]
+}
+
+# interface
+
+function scfg_help {
+  echo "Simple git based shared configuration." > $(tty)
+  echo > $(tty)
+  echo "Usage:" > $(tty)
+  echo "  setup      set up new git repository for all configs" > $(tty)
+  echo "  add        add file to repository" > $(tty)
+  echo "  sync       synchronize configuration (overrides your current config files)" > $(tty)
+
+}
+
+function scfg_setup {  
+  mkdir -p $working_dir
+  cd_working_dir
+  touch $map_file
+  git init
+}
+
+function scfg_add {
+  config_file=$1
+    
+  if [ -z $config_file ]
+  then
+    echo "Usage: $me <config_file>" > $(tty)
+	exit
+  fi
+  
+  config_name=`basename $config_file`
+ 
+  if is_config_not_added $config_file
+  then
+	map_config $config_file
+	cp $config_file $working_dir
+	rm $config_file
+	ln -s $working_dir/$config_name $config_file 
+  fi
+  
+ 
+  cd_working_dir
+  git add $config_name
+  git add $map_file
+}
+
+function scfg_sync {
+  cd_working_dir
+  
+  IFS="="
+  while read -r config_name config_path
+  do
+    config_dir=$(dirname "$config_path")
+	mkdir -p $config_dir
+	rm -f $config_path
+	ln -s `realpath $config_name` $config_path
+  done < $map_file
+}
+
+set -e
+eval scfg_$1 "${@:2}" > /dev/null
