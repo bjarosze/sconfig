@@ -1,7 +1,8 @@
 #!/bin/bash
 
 working_dir="$HOME/.scfg"
-map_file="$working_dir/.map"
+map_file="$working_dir/map"
+backup_dir="$working_dir/backup"
 me=`basename "$0"`
 
 
@@ -27,6 +28,15 @@ function is_config_not_added {
   [ `cat $map_file | awk -F\= '{print $1}' | grep $config_name | wc -l` -eq "0" ]
 }
 
+function backup {
+  config_file=$1
+
+  if ! [ -L "$config_file" ]
+  then
+	cp $config_file $backup_dir
+  fi
+}
+
 # interface
 
 function scfg_help {
@@ -41,9 +51,12 @@ function scfg_help {
 
 function scfg_setup {  
   mkdir -p $working_dir
+  mkdir -p $backup_dir
   cd_working_dir
-  touch $map_file
+  echo "/backup" > .gitignore
+  echo "Configuration mapping" > $map_file
   git init
+  git add .
 }
 
 function scfg_add {
@@ -59,10 +72,11 @@ function scfg_add {
  
   if is_config_not_added $config_file
   then
-	map_config $config_file
-	cp $config_file $working_dir
-	rm $config_file
-	ln -s $working_dir/$config_name $config_file 
+    backup $config_file
+    map_config $config_file
+    cp $config_file $working_dir
+    rm $config_file
+    ln -s $working_dir/$config_name $config_file
   fi
   
  
