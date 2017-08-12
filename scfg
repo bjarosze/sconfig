@@ -43,18 +43,18 @@ function scfg_help {
   echo "Simple git based shared configuration." > $(tty)
   echo > $(tty)
   echo "Usage:" > $(tty)
-  echo "  setup      set up new git repository for all configs" > $(tty)
+  echo "  init       set up new git repository for all configs" > $(tty)
   echo "  add        add file to repository" > $(tty)
   echo "  sync       synchronize configuration (overrides your current config files)" > $(tty)
 
 }
 
-function scfg_setup {  
+function scfg_init {  
   mkdir -p $working_dir
   mkdir -p $backup_dir
   cd_working_dir
   echo "/backup" > .gitignore
-  echo "Configuration mapping" > $map_file
+  echo "# Configuration mapping" > $map_file
   git init
   git add .
 }
@@ -91,8 +91,10 @@ function scfg_sync {
   IFS="="
   while read -r config_name config_path
   do
+    [[ "$config_name" =~ ^#.*$ ]] && continue
     config_dir=$(dirname "$config_path")
 	mkdir -p $config_dir
+	backup $config_path
 	rm -f $config_path
 	ln -s `realpath $config_name` $config_path
   done < $map_file
