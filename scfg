@@ -17,8 +17,7 @@ function cd_working_dir {
 function map_config {
   config_file=$1
   config_name=`basename $config_file`
-  config_file_path=`realpath $config_file`
-  
+  config_file_path=`realpath $config_file | sed "s|$HOME|\\$HOME|g"`
   echo "$config_name=$config_file_path" >> $map_file
 }
 
@@ -31,7 +30,7 @@ function is_config_not_added {
 function backup {
   config_file=$1
 
-  if ! [ -L "$config_file" ]
+  if [[ -e "$config_file" ]] && ! [[ -L "$config_file" ]]
   then
 	cp $config_file $backup_dir
   fi
@@ -110,6 +109,7 @@ function scfg_sync {
   IFS="="
   while read -r config_name config_path
   do
+    config_path=`eval echo "$config_path"`
     if ! [[ "$config_name" =~ ^#.*$ || -L "$config_path" ]]
 	then 
       config_dir=$(dirname "$config_path")
