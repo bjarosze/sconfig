@@ -105,15 +105,19 @@ function scfg_add {
 function scfg_sync {
   cd_working_dir
   
+  git pull
+  
   IFS="="
   while read -r config_name config_path
   do
-    [[ "$config_name" =~ ^#.*$ ]] && continue
-    config_dir=$(dirname "$config_path")
-	mkdir -p $config_dir
-	backup $config_path
-	rm -f $config_path
-	ln -s `realpath $config_name` $config_path
+    if ! [[ "$config_name" =~ ^#.*$ || -L "$config_path" ]]
+	then 
+      config_dir=$(dirname "$config_path")
+	  mkdir -p $config_dir
+	  backup $config_path
+	  rm -f $config_path
+	  ln -s `realpath $config_name` $config_path
+	fi
   done < $map_file
 }
 
