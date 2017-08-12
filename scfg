@@ -32,7 +32,7 @@ function backup {
 
   if [[ -e "$config_file" ]] && ! [[ -L "$config_file" ]]
   then
-	cp $config_file $backup_dir
+    cp $config_file $backup_dir
   fi
 }
 
@@ -53,7 +53,7 @@ function scfg_init {
   if [ -z "$git_remote" ]
   then
     echo "Usage: $me init <git_remote>" > $(tty)
-	exit
+    exit
   fi
 
   mkdir -p $working_dir
@@ -76,7 +76,7 @@ function scfg_add {
   if [ -z "$config_file" ]
   then
     echo "Usage: $me add <config_file>" > $(tty)
-	exit
+    exit
   fi
   
   config_name=`basename $config_file`
@@ -88,9 +88,9 @@ function scfg_add {
     cp $config_file $working_dir
     rm $config_file
     ln -s $working_dir/$config_name $config_file
-	commit_message="add $config_name"
+    commit_message="add $config_name"
   else
-	commit_message="update $config_name"
+    commit_message="update $config_name"
   fi
   
  
@@ -111,13 +111,13 @@ function scfg_sync {
   do
     config_path=`eval echo "$config_path"`
     if ! [[ "$config_name" =~ ^#.*$ || -L "$config_path" ]]
-	then 
+    then 
       config_dir=$(dirname "$config_path")
-	  mkdir -p $config_dir
-	  backup $config_path
-	  rm -f $config_path
-	  ln -s `realpath $config_name` $config_path
-	fi
+      mkdir -p $config_dir
+      backup $config_path
+      rm -f $config_path
+      ln -s `realpath $config_name` $config_path
+    fi
   done < $map_file
 }
 
