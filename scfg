@@ -19,7 +19,7 @@ function map_config {
   config_name=`basename $config_file`
   config_file_path=`realpath $config_file`
   
-  echo "$config_file=$config_file_path" >> $map_file
+  echo "$config_name=$config_file_path" >> $map_file
 }
 
 function is_config_not_added {
@@ -72,6 +72,7 @@ function scfg_init {
 
 function scfg_add {
   config_file=$1
+  
     
   if [ -z "$config_file" ]
   then
@@ -88,12 +89,17 @@ function scfg_add {
     cp $config_file $working_dir
     rm $config_file
     ln -s $working_dir/$config_name $config_file
+	commit_message="add $config_name"
+  else
+	commit_message="update $config_name"
   fi
   
  
   cd_working_dir
   git add $config_name
   git add $map_file
+  git commit -m "$commit_message"
+  git push origin master
 }
 
 function scfg_sync {
