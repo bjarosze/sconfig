@@ -43,28 +43,39 @@ function scfg_help {
   echo "Simple git based shared configuration." > $(tty)
   echo > $(tty)
   echo "Usage:" > $(tty)
-  echo "  init       set up new git repository for all configs" > $(tty)
-  echo "  add        add file to repository" > $(tty)
-  echo "  sync       synchronize configuration (overrides your current config files)" > $(tty)
+  echo "  init <git_remote>      set up new git repository for all configs" > $(tty)
+  echo "  add                    add file to repository" > $(tty)
+  echo "  sync                   synchronize configuration (overrides your current config files)" > $(tty)
 
 }
 
 function scfg_init {  
+  git_remote=$1
+  if [ -z "$git_remote" ]
+  then
+    echo "Usage: $me init <git_remote>" > $(tty)
+	exit
+  fi
+
   mkdir -p $working_dir
   mkdir -p $backup_dir
   cd_working_dir
   echo "/backup" > .gitignore
   echo "# Configuration mapping" > $map_file
+  
   git init
   git add .
+  git commit -m "initialize shared configuration"
+  git remote add origin $git_remote
+  git push -u origin master
 }
 
 function scfg_add {
   config_file=$1
     
-  if [ -z $config_file ]
+  if [ -z "$config_file" ]
   then
-    echo "Usage: $me <config_file>" > $(tty)
+    echo "Usage: $me add <config_file>" > $(tty)
 	exit
   fi
   
